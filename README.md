@@ -1,8 +1,44 @@
 # CarND-Controls-MPC
 Self-Driving Car Engineer Nanodegree Program
-
 ---
 
+## The details of the model
+Here I implement the Model Predictive Control(MPC) to control the vehicle. In this model, the control input is 
+(delta, a) denote the (steer_value, throttle_value). The state vector is the (x, y, psi, v, cte, epsi). The model is consist
+ of the following part:
+ * **A reference trajectory(A Polynomial)**: it is get from the path planing part. In this program, it is some points in the global coordinate.
+ I transform these points to the vehicle coordinate, and use a Polynomial with 3 order to fit the trajectory.
+ * **A vehicle model** (to calculate the state of the vehicle step by step), The detail of the vehicle model is shown in below:
+ ```$xslt
+ // x_[t+1] = x[t] + v[t] * cos(psi[t]) * dt
+ // y_[t+1] = y[t] + v[t] * sin(psi[t]) * dt
+ // psi_[t+1] = psi[t] + v[t] / Lf * delta[t] * dt
+ // v_[t+1] = v[t] + a[t] * dt
+ // cte[t+1] = f(x[t]) - y[t] + v[t] * sin(epsi[t]) * dt
+ // epsi[t+1] = psi[t] - psides[t] + v[t] * delta[t] / Lf * dt
+ ```
+ * **Some constraints**: lower_bound and upper_bound of delta and a. 
+ * **Appropriate N and dt**
+ * **A cost function**: it is consist of some terms that we want to minimize, such as the CTE, EPSI, and other term which make the
+ vehicle move smoother or make the vehicle move at a fixed speed. 
+ * **An optimizer**: To optimize the (delta, a) to minimize the cost. After optimize, we will get a series of delta, a, x, y, psi, cte, spsi
+  from 1~N. These are the state of each time step we calculate.
+  
+## How to choose the N and dt
+I choose N=16 and dt=0.05. So the T=N*dt=0.8 second. The dt I choose is small which means actuate frequency is high.
+When I choose N=20 and dt=0.1, vehicle may be out of the road when it turns with a high speed. I think it's because the actuate frequency is not enough.
+So I set the dt as 0.05.
+## How to deal with the latency
+Since the latency is set as 100ms, which means latency=2*dt, I choose the delta and a at time step 2 after optimize. The code is:
+```$xslt
+return {solution.x[delta_start + latency], solution.x[a_start + latency]};
+```
+## The cost function
+The cost function consists of several terms:
+* sum(cte^2) and sum(epsi^2), which to control the cte and epsi as small as possible
+* sum((v-ref_v)^2), which to make the speed fix at ref_v, the ref_v we set in the program is 60 mph.
+* sum(delta^2) and sum(a^2), which to actuate as small as possible 
+* sum(400*(delta^t+1 - delta^t)^2) and sum((a^t+1 - a^t)^2), which makes the steering and  acceleration smoother.
 ## Dependencies
 
 * cmake >= 3.5
