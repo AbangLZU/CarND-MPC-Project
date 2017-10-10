@@ -33,10 +33,24 @@ Since the latency is set as 100ms, which means latency=2*dt, I choose the delta 
 ```$xslt
 return {solution.x[delta_start + latency], solution.x[a_start + latency]};
 ```
+and constraint the actuator values to previous values to mimic the effect of latency:
+```objectivec
+// constraint the actuator values to previous values to mimic the effect of latency
+    for (int i= delta_start; i < delta_start + latency_steps; i++)
+    {
+        vars_lowerbound [i] = prev_delta;
+        vars_upperbound [i] = prev_delta;
+    }
+    for (int i= a_start; i < a_start + latency_steps; i++)
+    {
+        vars_lowerbound [i] = prev_a;
+        vars_upperbound [i] = prev_a;
+    }
+```
 ## The cost function
 The cost function consists of several terms:
 * sum(cte^2) and sum(epsi^2), which to control the cte and epsi as small as possible
-* sum((v-ref_v)^2), which to make the speed fix at ref_v, the ref_v we set in the program is 60 mph.
+* sum((v-ref_v)^2), which to make the speed fix at ref_v, the ref_v we set in the program is 70 mph.
 * sum(delta^2) and sum(a^2), which to actuate as small as possible 
 * sum(400*(delta^t+1 - delta^t)^2) and sum((a^t+1 - a^t)^2), which makes the steering and  acceleration smoother.
 ## Dependencies

@@ -11,6 +11,9 @@ public:
     vector<double> mpc_x;
     vector<double> mpc_y;
 
+    double prev_delta{0.0};
+    double prev_a{0.5};
+
     MPC();
 
     virtual ~MPC();

@@ -21,8 +21,8 @@ double dt = 0.05;
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
 
-double ref_v = 60;
-int latency = 2;
+double ref_v = 70;
+int latency_steps = 0.1/dt;
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
@@ -203,6 +203,18 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
         vars_upperbound[i] = 1.0;
     }
 
+    // constraint the actuator values to previous values to mimic the effect of latency
+    for (int i= delta_start; i < delta_start + latency_steps; i++)
+    {
+        vars_lowerbound [i] = prev_delta;
+        vars_upperbound [i] = prev_delta;
+    }
+    for (int i= a_start; i < a_start + latency_steps; i++)
+    {
+        vars_lowerbound [i] = prev_a;
+        vars_upperbound [i] = prev_a;
+    }
+
     // Lower and upper limits for the constraints
     // Should be 0 besides initial state.
     Dvector constraints_lowerbound(n_constraints);
@@ -275,5 +287,5 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     for (int k = 0; k < N - 1; ++k) {
         mpc_y.push_back(solution.x[y_start+k]);
     }
-    return {solution.x[delta_start + latency], solution.x[a_start + latency]};
+    return {solution.x[delta_start + latency_steps], solution.x[a_start + latency_steps]};
 }

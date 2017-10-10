@@ -134,6 +134,9 @@ int main() {
                     // compute the optimal trajectory
                     auto result = mpc.Solve(state, coeffs);
 
+                    mpc.prev_delta = result[0];
+                    mpc.prev_a = result[1];
+
                     double steer_value = -result[0];
                     double throttle_value = result[1];
 
