@@ -34,7 +34,7 @@ Since the latency is set as 100ms, which means latency=2*dt, I choose the delta 
 return {solution.x[delta_start + latency], solution.x[a_start + latency]};
 ```
 and constraint the actuator values to previous values to mimic the effect of latency:
-```objectivec
+```
 // constraint the actuator values to previous values to mimic the effect of latency
     for (int i= delta_start; i < delta_start + latency_steps; i++)
     {
